@@ -9,6 +9,8 @@ let
     rev = "25df6d1865fbf54507e5432d464e8d1dc67001ab";
     hash = "sha256-D43tv68MONpumx6ynskdLiKCuMovDOsIZx9zmiFVAic=";
   };
+
+  easierWJ = ./patches/custom/EasierWJ.asm;
 in
 
 pkgs.stdenv.mkDerivation {
@@ -65,6 +67,12 @@ pkgs.stdenv.mkDerivation {
 
     # Heavy Physics is enabled by !heavy = 0.
     grep -q '^!heavy = 0' code/main.asm
+
+    # Easier Wall Jump (Benox50, resource 545).
+    mkdir -p code/Custom
+    cp "${easierWJ}" code/Custom/EasierWJ.asm
+    printf '%s\n' 'incsrc "Custom/EasierWJ.asm"' >> code/main.asm
+    grep -q '^incsrc "Custom/EasierWJ.asm"' code/main.asm
   '';
 
   buildPhase = ''

@@ -8,6 +8,7 @@ This build starts from a legally obtained, clean Super Metroid ROM and applies:
 * **Heavy Physics**
 * **Save Stations Refill Everything**
 * **Red Gate** optional patch
+* **Easier Wall Jump** custom patch (`patches/custom/EasierWJ.asm`) by Benox50
 
 The upstream `make.sh` script is intentionally **not used**. The ROM is assembled directly with the Asar binary included in the Redux repository, and the Red Gate IPS patch is applied using Python.
 
@@ -42,6 +43,27 @@ patches/optional/Red Gate.ips
 ```
 
 patch is applied after the main Redux assembly.
+
+### Easier Wall Jump
+
+The custom:
+
+```text
+patches/custom/EasierWJ.asm
+```
+
+patch (by Benox50) is assembled together with Redux (appended to `code/main.asm`
+in the Nix build).
+
+You can press jump just before the turn direction to walljump — a 5-frame
+input window (`!WJ_Lee`), so pressing jump and the direction nearly together
+still works. It also removes the need to hold the away direction and includes
+a fix for screw-attack contact damage not triggering during the wall-kick pose.
+
+Credit:
+
+* https://metroidconstruction.com/resource.php?id=545
+* https://metroidconstruction.com//files/assembly/545/EasierWJ.asm
 
 ## Requirements
 
@@ -94,10 +116,11 @@ The Nix derivation:
 3. Enables Redux's optional patch system.
 4. Enables Heavy Physics.
 5. Enables Save Stations Refill Everything.
-6. Copies the clean ROM to the build directory.
-7. Runs the bundled Asar assembler directly.
-8. Applies `Red Gate.ips`.
-9. Installs the resulting ROM as:
+6. Adds the custom Easier Wall Jump patch.
+7. Copies the clean ROM to the build directory.
+8. Runs the bundled Asar assembler directly.
+9. Applies `Red Gate.ips`.
+10. Installs the resulting ROM as:
 
 ```text
 Super-Metroid-Redux-Custom.sfc
