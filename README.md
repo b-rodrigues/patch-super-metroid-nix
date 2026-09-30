@@ -1,179 +1,119 @@
-# Super Metroid Redux — Nix Build
+# Super Metroid ROM Builds with Nix
 
-A reproducible [Nix](https://nixos.org/) build for creating a customized **Super Metroid Redux** ROM.
+Reproducible [Nix](https://nixos.org/) builds for patching and assembling customized Super Metroid ROMs from a clean original base ROM.
 
-This build starts from a legally obtained, clean Super Metroid ROM and applies:
+This repository provides Nix derivations for:
 
-* [Super Metroid Redux](https://github.com/ShadowOne333/Super-Metroid-Redux)
-* **Heavy Physics**
-* **Save Stations Refill Everything**
-* **Red Gate** optional patch
-* **Easier Wall Jump** custom patch (`patches/custom/EasierWJ.asm`) by Benox50
+1. **[Hyper Metroid SUPER](#hyper-metroid-super)** — The 10th-anniversary remaster of the acclaimed overhaul hack by RealRed.
+2. **[Super Metroid Redux (Custom)](#super-metroid-redux--custom-build)** — A modernized vanilla experience assembled with Asar and custom QoL patches.
 
-The upstream `make.sh` script is intentionally **not used**. The ROM is assembled directly with the Asar binary included in the Redux repository, and the Red Gate IPS patch is applied using Python.
-
-## Features
-
-### Super Metroid Redux
-
-The base patch is taken from the pinned upstream commit:
-
-```text
-25df6d1865fbf54507e5432d464e8d1dc67001ab
-```
-
-Pinning the commit makes the build reproducible rather than depending on whatever happens to be in the upstream repository at build time.
-
-### Heavy Physics
-
-Heavy Physics is enabled by default.
-
-This gives Samus a more responsive movement model with stronger gravity and altered underwater movement. In particular, areas such as Maridia feel substantially less sluggish compared with vanilla Super Metroid.
-
-### Save Stations Refill Everything
-
-Save stations restore additional resources when saving, making them more useful as checkpoints during a playthrough.
-
-### Red Gate
-
-The optional:
-
-```text
-patches/optional/Red Gate.ips
-```
-
-patch is applied after the main Redux assembly.
-
-### Easier Wall Jump
-
-The custom:
-
-```text
-patches/custom/EasierWJ.asm
-```
-
-patch (by Benox50) is assembled together with Redux (appended to `code/main.asm`
-in the Nix build).
-
-You can press jump just before the turn direction to walljump — a 5-frame
-input window (`!WJ_Lee`), so pressing jump and the direction nearly together
-still works. It also removes the need to hold the away direction and includes
-a fix for screw-attack contact damage not triggering during the wall-kick pose.
-
-Credit:
-
-* https://metroidconstruction.com/resource.php?id=545
-* https://metroidconstruction.com//files/assembly/545/EasierWJ.asm
+---
 
 ## Requirements
 
-You need:
+To build either ROM, you need:
 
-* Nix
-* A clean, legally obtained copy of the original Super Metroid ROM
-* The ROM must have the expected SHA-1 checksum:
+* [Nix](https://nixos.org/)
+* A clean, legally obtained copy of the original Super Metroid ROM (Japan/USA):
+  * **Expected format:** `Super Metroid (Japan, USA) (En,Ja).sfc`
+  * **Expected SHA-1 checksum:**
+    ```text
+    da957f0d63d14cb441d215462904c4fa8519c613
+    ```
 
-```text
-da957f0d63d14cb441d215462904c4fa8519c613
+> [!IMPORTANT]
+> **No original ROMs are included, downloaded, or distributed by this repository.** You must supply your own clean ROM.
+
+---
+
+## Hyper Metroid SUPER
+
+[Hyper Metroid SUPER](https://metroidconstruction.com/hack.php?id=823) is a complete overhaul ROM hack of *Super Metroid* created by **RealRed**, released in April 2025 as the 10th-anniversary remaster of the original 2015 *Hyper Metroid*.
+
+It features:
+* A brand new, re-envisioned Zebes map with reworked room designs and cohesive flow.
+* Rebalanced weapons, physics, and enemy encounters.
+* High-velocity exploration and refined progression.
+* Replaces the older Project Base engine dependencies with custom mechanics tailored specifically for the hack.
+
+### Links & Credits
+* **Hack Page:** [Hyper Metroid SUPER on Metroid Construction](https://metroidconstruction.com/hack.php?id=823)
+* **Original Hack:** [Hyper Metroid (2015) on Romhacking.net](https://www.romhacking.net/hacks/2005/)
+* **Community:** [Metroid Construction](https://metroidconstruction.com/)
+
+### Building Hyper Metroid SUPER
+
+The derivation [`hyper-metroid.nix`](./hyper-metroid.nix) automatically detects whether your base ROM is unheadered or headered, validates the checksum, and applies the corresponding IPS patch:
+* [`Hyper_Metroid_Super_UH.ips`](./Hyper_Metroid_Super_UH.ips) for unheadered ROMs (3,145,728 bytes).
+* [`Hyper_Metroid_Super_H.ips`](./Hyper_Metroid_Super_H.ips) for headered ROMs (3,146,240 bytes).
+
+If your base ROM is named `SuperMetroid.sfc` in the project root:
+```bash
+nix-build hyper-metroid.nix
 ```
 
-The expected ROM is the standard:
-
-```text
-Super Metroid (Japan, USA) (En,Ja).sfc
+Or specify a custom path to your ROM:
+```bash
+nix-build hyper-metroid.nix --arg rom /path/to/SuperMetroid.sfc
 ```
 
-**The ROM itself is not included in this repository.**
+The resulting 4.0 MB ROM will be available at:
+```text
+./result/Hyper-Metroid-Super.sfc
+```
 
-## Building
+---
 
-Place your clean ROM somewhere accessible to Nix and run:
+## Super Metroid Redux — Custom Build
+
+A customized build of [Super Metroid Redux](https://github.com/ShadowOne333/Super-Metroid-Redux) (pinned commit `25df6d1865fbf54507e5432d464e8d1dc67001ab`) that assembles the ROM directly using the bundled Asar binary and Python:
+
+* **Heavy Physics:** Stronger gravity and responsive underwater movement (improving areas like Maridia).
+* **Save Stations Refill Everything:** Restores health and ammo checkpoints.
+* **Red Gate Optional Patch:** Applied via Python post-assembly (`patches/optional/Red Gate.ips`).
+* **Easier Wall Jump:** Custom ASM patch by Benox50 (`patches/custom/EasierWJ.asm`, [Resource 545](https://metroidconstruction.com/resource.php?id=545)) with a 5-frame input window.
+
+### Building Redux
 
 ```bash
 nix-build default.nix --arg rom ./SuperMetroid.sfc
 ```
 
-For example, if the ROM is named:
-
-```text
-SuperMetroid.sfc
-```
-
-in the current directory, the command above will build the customized ROM.
-
-The resulting ROM will be available through the Nix build result:
-
+The resulting ROM will be available at:
 ```text
 ./result/Super-Metroid-Redux-Custom.sfc
 ```
 
-## What the build does
+---
 
-The Nix derivation:
+## Save Files & Emulators
 
-1. Fetches the pinned Super Metroid Redux source.
-2. Verifies the supplied base ROM's SHA-1 checksum.
-3. Enables Redux's optional patch system.
-4. Enables Heavy Physics.
-5. Enables Save Stations Refill Everything.
-6. Adds the custom Easier Wall Jump patch.
-7. Copies the clean ROM to the build directory.
-8. Runs the bundled Asar assembler directly.
-9. Applies `Red Gate.ips`.
-10. Installs the resulting ROM as:
+Both patched ROMs use the standard Super Metroid SRAM save format (`.srm`).
 
-```text
-Super-Metroid-Redux-Custom.sfc
-```
+* **Tested Emulators:** Compatible with modern SNES emulators such as RetroArch (Snes9x / Mesen-S / bsnes cores), Ares, and desktop Snes9x.
+* **Save Names:** In RetroArch, ensure your `.srm` save file matches the ROM's filename:
+  ```text
+  Hyper-Metroid-Super.sfc
+  Hyper-Metroid-Super.srm
+  ```
+* **Save States:** RetroArch save states (`.state`) are not compatible between different hacks or vanilla Super Metroid. Always rely on battery SRAM saves (`.srm`) when migrating.
 
-No ROM is downloaded, embedded, or distributed by this repository.
-
-## Save Files
-
-The resulting ROM is intended to use the normal Super Metroid SRAM save format.
-
-If you already have a vanilla Super Metroid save file, it may be possible to continue your existing game with the Redux ROM.
-
-On RetroArch, make sure the save file is associated with the Redux ROM's filename. For example:
-
-```text
-Super-Metroid-Redux-Custom.sfc
-Super-Metroid-Redux-Custom.srm
-```
-
-**Back up your original save file before attempting this.**
-
-RetroArch save states are different from normal SRAM saves and should not be treated as interchangeable between vanilla Super Metroid and Redux.
-
-## Emulator
-
-The resulting ROM should work with compatible SNES emulators.
-
-The build has been tested with **RetroArch on Android**.
-
-A normal `.srm` save file can be transferred successfully from vanilla Super Metroid to the Redux build.
+---
 
 ## Why Nix?
 
-The goal of this repository is to make the customized ROM build:
+Using Nix makes ROM hacking and patching:
+* **Fully reproducible:** Upstream sources, patches, and build tools are explicitly tracked or pinned.
+* **Zero toolchain dependencies:** No need to install Flips, Lunar IPS, or compilers manually; Nix provides Python and dependencies automatically in an isolated sandbox.
+* **Clean & safe:** The original clean ROM remains pristine and untouched outside the Nix store.
 
-* reproducible
-* declarative
-* independent of the upstream `make.sh`
-* easy to rebuild
-* explicit about the exact Redux revision being used
+---
 
-The original ROM remains outside the repository and is supplied by the user at build time.
+## Legal & Disclaimer
 
-## Legal
-
-This repository does **not** contain or distribute the Super Metroid ROM.
-
-You must provide your own legally obtained copy of the original game.
-
-The Super Metroid Redux source is maintained by its respective authors:
-
-https://github.com/ShadowOne333/Super-Metroid-Redux
-
-Please respect the licenses and distribution terms of all software and patches used by this project.
- 
+* This repository does **not** contain, distribute, or pirate any copyrighted game ROMs.
+* You must supply your own legally acquired copy of the original Super Metroid game.
+* Upstream projects and patches belong to their respective creators:
+  * **Hyper Metroid SUPER** by [RealRed](https://metroidconstruction.com/hack.php?id=823).
+  * **Super Metroid Redux** by [ShadowOne333 and contributors](https://github.com/ShadowOne333/Super-Metroid-Redux).
+  * **Easier Wall Jump** by [Benox50](https://metroidconstruction.com/resource.php?id=545).
